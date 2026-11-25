@@ -1,6 +1,10 @@
 package com.ivangames.alter
 
+import android.Manifest
 import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -46,6 +50,9 @@ class MainActivity : AppCompatActivity() {
         input = findViewById(R.id.input)
         cwdPath = filesDir.absolutePath
 
+        requestNotificationPermissionIfNeeded()
+        startAlterBackgroundService()
+
         val tap = View.OnClickListener { focusInput() }
         scroll.setOnClickListener(tap)
         output.setOnClickListener(tap)
@@ -54,13 +61,40 @@ class MainActivity : AppCompatActivity() {
         startShell()
     }
 
+    private fun requestNotificationPermissionIfNeeded() {
+        if (Build.VERSION.SDK_INT >= 33) {
+            if (checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), 1001)
+            }
+        }
+    }
+
+    private fun startAlterBackgroundService() {
+        try {
+            val i = Intent(this, AlterKeepAliveService::class.java)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                startForegroundService(i)
+            } else {
+                startService(i)
+            }
+        } catch (e: Exception) {
+            appendHistory("[фон не запустился: " + e.message + "]\n")
+        }
+    }
+
     private fun focusInput() {
         input.requestFocus()
         val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
         imm.showSoftInput(input, InputMethodManager.SHOW_IMPLICIT)
     }
 
-    private fun appendHistory(t: String) { output.append(t); scroll.post { scroll.fullScroll(View.FOCUS_DOWN) } }
+    private fun appendHistory(t: String) {
+        output.append(t)
+        scroll.post {
+            scroll.fullScroll(View.FOCUS_DOWN)
+            input.requestFocus()
+        }
+    }
     private fun say(t: String) { ui.post { appendHistory(t + "\n") } }
     private fun hidePrompt() { promptRow.visibility = View.GONE }
     private fun showPrompt(code: String = "0") {
