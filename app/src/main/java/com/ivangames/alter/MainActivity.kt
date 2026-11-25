@@ -155,7 +155,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun runGh(cmd: String) {
-        val parts = cmd.split(" ", 3)
+        val parts = cmd.split(" ", limit = 3)
         val sub = parts.getOrElse(1) { "help" }
         val arg = parts.getOrElse(2) { "" }
         Thread {
