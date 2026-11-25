@@ -50,8 +50,8 @@ class MainActivity : AppCompatActivity() {
         input = findViewById(R.id.input)
         cwdPath = filesDir.absolutePath
 
-        requestNotificationPermissionIfNeeded()
-        startAlterBackgroundService()
+        // requestNotificationPermissionIfNeeded() // TEMP DISABLED
+        // startAlterBackgroundService() // TEMP DISABLED
 
         val tap = View.OnClickListener { focusInput() }
         scroll.setOnClickListener(tap)
